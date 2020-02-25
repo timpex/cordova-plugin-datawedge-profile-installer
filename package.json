@@ -1,0 +1,31 @@
+{
+	"name": "cordova-plugin-datawedge-profile-installer",
+	"version": "0.0.1",
+	"description": "Plugin to install/import a Datawedge profile",
+	"cordova": {
+	  "id": "cordova-plugin-datawedge-profile-installer",
+	  "platforms": [
+		"android"
+	  ]
+	},
+	"repository": {
+	  "type": "git",
+	  "url": "git+https://github.com/timpex/cordova-plugin-datawedge-profile-installer.git"
+	},
+	"keywords": [
+	  "datawedge",
+	  "datawedge-profile",
+	  "ecosystem:cordova",
+	  "cordova-android"
+	],
+	"engines": [
+		{
+			"name": "cordova-android",
+			"version": ">=3.0.0"
+		}
+	],
+	"author": "Timpex AS",
+	"license": "Apache 2.0",
+	"homepage": "https://github.com/timpex/cordova-plugin-datawedge-profile-installer#readme"
+  }
+  
