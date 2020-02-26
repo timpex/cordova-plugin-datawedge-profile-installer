@@ -8,7 +8,7 @@ cordova plugin add https://github.com/timpex/cordova-plugin-datawedge-profile-in
 
 # API
 
-## Install profile
+## Install
 
 ``` js
 timpex.dataWedgeProfileInstaller.install(url, onSuccess, onFailure);
