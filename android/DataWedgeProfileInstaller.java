@@ -26,40 +26,43 @@ import android.util.Log;
 
 public class DataWedgeProfileInstaller extends CordovaPlugin {
 	private static final String LOG_TAG = "DataWedgeProfileInstaller";
-	private static final String LINE_START = "--";
-    private static final String LINE_END = "\r\n";
-    private static final String BOUNDARY =  "+++++";
 	private static final String TARGET_DIR = "/enterprise/device/settings/datawedge/autoimport/";
-    public static int FILE_NOT_FOUND_ERR = 1;
-    public static int INVALID_URL_ERR = 2;
-    public static int CONNECTION_ERR = 3;
-    public static int ABORTED_ERR = 4;
-	public static int NOT_MODIFIED_ERR = 5;
 	private static final int MAX_BUFFER_SIZE = 16 * 1024;
 
 
 	@Override
-	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException, IOException {
+	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		if (!"install".equals(action)) {
 			return false;
 		}
 
-		String source = args.getString(0);
-		boolean success = download(source);
-		if(success) {
-			callbackContext.success();
-		} else {
-			callbackContext.error();
-		}
+		JSONObject params = args.getJSONObject(0);
+		String url = params.getString("url");
+		String targetFileName = params.getString("targetFileName");
+		cordova.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				boolean success = download(url, targetFileName);
+				if(success) {
+					callbackContext.success();
+				} else {
+					callbackContext.error("Install failed");
+				}
+			}
+		});
 		
 		return true;
 	}
 
-	private boolean download(final String source) throws IOException {
+	private boolean download(final String source, final String targetFileName) {
+		File dir = new File(TARGET_DIR);
+		if(!dir.isDirectory()) return false;
+
 		final CordovaResourceApi resourceApi = webView.getResourceApi();
 		final Uri sourceUri = resourceApi.remapUri(Uri.parse(source));
 		FileOutputStream outputStream = null;
 		InputStream inputStream = null;
+		
 		try{
 			HttpURLConnection connection = resourceApi.createHttpConnection(sourceUri);
 			connection.setRequestMethod("GET");
@@ -70,7 +73,7 @@ public class DataWedgeProfileInstaller extends CordovaPlugin {
 			byte[] buffer = new byte[MAX_BUFFER_SIZE];
 			int bytesRead = 0;
 			
-			File file = new File(TARGET_DIR,"datawedge.db.tmp");
+			File file = new File(TARGET_DIR, targetFileName + ".tmp");
 			outputStream = new FileOutputStream(file);
 			while ((bytesRead = inputStream.read(buffer)) > 0) {
 				outputStream.write(buffer, 0, bytesRead);
@@ -82,21 +85,15 @@ public class DataWedgeProfileInstaller extends CordovaPlugin {
 			outputStream.close();
 			outputStream = null;
 
-			File fileToImport = new File(TARGET_DIR, "datawedge.db");
+			File fileToImport = new File(TARGET_DIR, targetFileName);
 			file.renameTo(fileToImport);
 			fileToImport.setExecutable(true, false);
 			fileToImport.setReadable(true, false);
 			fileToImport.setWritable(true, false);
 			return true;
 		} catch(IOException e) {
+			e.printStackTrace();
 			return false;
-		} finally {
-			if(outputStream != null) {
-				outputStream.close();
-			}
-			if(inputStream != null) {
-				inputStream.close();
-			}
 		}
 	}
 }
